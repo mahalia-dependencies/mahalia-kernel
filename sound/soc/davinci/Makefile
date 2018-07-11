@@ -14,3 +14,8 @@ obj-$(CONFIG_SND_DAVINCI_SOC_VCIF) += snd-soc-davinci-vcif.o
 snd-soc-evm-objs := davinci-evm.o
 
 obj-$(CONFIG_SND_DAVINCI_SOC_GENERIC_EVM) += snd-soc-evm.o
+
+# Boneblack Audio Extension Support
+snd-soc-boneblack-audio-extension-objs := boneblack-audio-extension.o
+
+obj-$(CONFIG_SND_SOC_BONEBLACK_AUDIO_EXTENSION) += snd-soc-boneblack-audio-extension.o

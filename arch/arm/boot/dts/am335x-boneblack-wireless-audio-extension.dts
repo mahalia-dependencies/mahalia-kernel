@@ -1,0 +1,131 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * DTS file for Boneblack Audio Extension
+ *
+ * Copyright (C) 2017 Chris Obbard <chris@64studio.com>
+ */
+
+/dts-v1/;
+
+#include "am335x-boneblack-wireless.dts"
+
+&am33xx_pinmux {
+	/* disable onboard hdmi transceiver */
+	nxp_hdmi_bonelt_pins: nxp_hdmi_bonelt_pins {
+		pinctrl-single,pins = <>;
+	};
+
+	/* disable onboard hdmi transceiver */
+	nxp_hdmi_bonelt_off_pins: nxp_hdmi_bonelt_off_pins {
+		pinctrl-single,pins = <>;
+	};
+
+	/* define pins for the I2S module */
+	mcasp0_pins: mcasp0_pins {
+		pinctrl-single,pins = <
+			/* P9_25 McASP0 Transmit Master Clock	(MCLK) */
+			AM33XX_IOPAD(0x9ac, PIN_INPUT_PULLUP | MUX_MODE0)
+
+			/* P9_28 McASP0 Serial Data 2 (OUT)	(DAC_SDATA) */
+			AM33XX_IOPAD(0x99c, PIN_OUTPUT_PULLDOWN | MUX_MODE2)
+
+			/* P9_29 McASP0 Transmit Frame Sync	(LRCLK) */
+			AM33XX_IOPAD(0x994, PIN_OUTPUT_PULLUP | MUX_MODE0)
+
+			/* P9_30 McASP0 Serial Data 0 (IN)	(ADC_SDATA) */
+			AM33XX_IOPAD(0x998, PIN_INPUT_PULLUP | MUX_MODE0)
+
+			/* P9_31 McASP0 Transmit Bit Clock	(BCLK) */
+			AM33XX_IOPAD(0x990, PIN_OUTPUT_PULLDOWN | MUX_MODE0)
+
+			/* Y4 MCLK oscillator disable (active-low) */
+			AM33XX_IOPAD(0x86c, PIN_OUTPUT_PULLDOWN | MUX_MODE7)
+		>;
+	};
+};
+
+&i2c0 {
+	/* disable onboard hdmi transceiver */
+	tda19988: tda19988 {
+
+	};
+};
+
+&i2c2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c2_pins>;
+
+	status = "okay";
+	clock-frequency = <100000>;
+
+	codec0: adau1761@38 {
+		#sound-dai-cells = <0>;
+		compatible = "adi,adau1761";
+		reg = <0x38>;
+		status = "okay";
+	};
+
+	codec1: adau1761@39 {
+		#sound-dai-cells = <0>;
+		compatible = "adi,adau1761";
+		reg = <0x39>;
+		status = "okay";
+	};
+
+	codec2: adau1761@3a {
+		#sound-dai-cells = <0>;
+		compatible = "adi,adau1761";
+		reg = <0x3a>;
+		status = "okay";
+	};
+};
+
+&lcdc {
+	status = "disabled";
+};
+
+&mcasp0	{
+	#sound-dai-cells = <0>;
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&mcasp0_pins>;
+
+	op-mode = <0>;
+	tdm-slots = <8>;
+	serial-dir = <
+		2 0 1 0
+		0 0 0 0
+		0 0 0 0
+		0 0 0 0
+	>;
+	tx-num-evt = <1>;
+	rx-num-evt = <1>;
+};
+
+/ {
+	clk_mcasp0_fixed: clk_mcasp0_fixed {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <24576000>;
+	};
+
+	clk_mcasp0: clk_mcasp0 {
+		#clock-cells = <0>;
+		compatible = "gpio-gate-clock";
+		clocks = <&clk_mcasp0_fixed>;
+		enable-gpios = <&gpio1 27 0>;
+	};
+
+	sound {
+		compatible = "64studio,boneblack-audio-extension";
+		status = "okay";
+		clocks = <&clk_mcasp0>;
+
+		boneblack-audio-extension,mcasp = <&mcasp0>;
+
+		/* these are not yet used */
+		boneblack-audio-extension,codec0 = <&codec0>;
+		boneblack-audio-extension,codec1 = <&codec1>;
+		boneblack-audio-extension,codec2 = <&codec2>;
+	};
+};

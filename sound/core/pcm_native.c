@@ -2096,8 +2096,9 @@ static int snd_pcm_hw_rule_sample_bits(struct snd_pcm_hw_params *params,
 #error "Change this table"
 #endif
 
+/* hack to allow 24 kHz operation */
 static const unsigned int rates[] = {
-	5512, 8000, 11025, 16000, 22050, 32000, 44100,
+	5512, 8000, 11025, 16000, 24000, 32000, 44100,
 	48000, 64000, 88200, 96000, 176400, 192000
 };
 
