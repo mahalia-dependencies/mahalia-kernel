@@ -187,6 +187,8 @@ static const struct snd_kcontrol_new adau1761_controls[] = {
 		ADAU1761_PLAY_LINE_RIGHT_VOL, 2, 0x3f, 0, adau1761_out_tlv),
 	SOC_DOUBLE_R("Lineout Playback Switch", ADAU1761_PLAY_LINE_LEFT_VOL,
 		ADAU1761_PLAY_LINE_RIGHT_VOL, 1, 1, 0),
+	SOC_DOUBLE_R("LO Mode Switch", ADAU1761_PLAY_LINE_LEFT_VOL,
+		ADAU1761_PLAY_LINE_RIGHT_VOL, 0, 1, 0),
 
 	SOC_ENUM("ADC Bias", adau1761_adc_bias_enum),
 	SOC_ENUM("DAC Bias", adau1761_dac_bias_enum),
