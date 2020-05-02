@@ -1219,7 +1219,7 @@ static int davinci_mcasp_trigger(struct snd_pcm_substream *substream,
 }
 
 static const unsigned int davinci_mcasp_dai_rates[] = {
-	8000, 11025, 16000, 22050, 32000, 44100, 48000, 64000,
+	8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000, 64000,
 	88200, 96000, 176400, 192000,
 };
 
@@ -1250,6 +1250,7 @@ static int davinci_mcasp_hw_rule_rate(struct snd_pcm_hw_params *params,
 
 			ppm = davinci_mcasp_calc_clk_div(rd->mcasp, bclk_freq,
 							 false);
+
 			if (abs(ppm) < DAVINCI_MAX_RATE_ERROR_PPM) {
 				if (range.empty) {
 					range.min = davinci_mcasp_dai_rates[i];
@@ -1312,7 +1313,8 @@ static int davinci_mcasp_hw_rule_min_periodsize(
 	struct snd_interval frames;
 
 	snd_interval_any(&frames);
-	frames.min = 64;
+	/* some arbitrary limit for cape4all testing */
+	frames.min = 1;
 	frames.integer = 1;
 
 	return snd_interval_refine(period_size, &frames);

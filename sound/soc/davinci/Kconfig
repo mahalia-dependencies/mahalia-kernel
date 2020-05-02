@@ -104,3 +104,10 @@ config  SND_DA850_SOC_EVM
 	  Say Y if you want to add support for SoC audio on TI
 	  DA850/OMAP-L138 EVM
 
+config SND_SOC_BONEBLACK_AUDIO_EXTENSION
+	tristate "SoC Audio support for Boneblack Audio Extension"
+	depends on SND_EDMA_SOC && SOC_AM33XX && I2C
+	select SND_SOC_ADAU1761_I2C
+	help
+	  Say Y if you want to add support for Boneblack Audio
+	  Cape
