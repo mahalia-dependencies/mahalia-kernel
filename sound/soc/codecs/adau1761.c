@@ -187,9 +187,15 @@ static const struct snd_kcontrol_new adau1761_controls[] = {
 		ADAU1761_PLAY_LINE_RIGHT_VOL, 2, 0x3f, 0, adau1761_out_tlv),
 	SOC_DOUBLE_R("Lineout Playback Switch", ADAU1761_PLAY_LINE_LEFT_VOL,
 		ADAU1761_PLAY_LINE_RIGHT_VOL, 1, 1, 0),
-	SOC_DOUBLE_R("LO Mode Switch", ADAU1761_PLAY_LINE_LEFT_VOL,
-		ADAU1761_PLAY_LINE_RIGHT_VOL, 0, 1, 0),
+	SOC_DOUBLE_R(                    // A stero control spanning 2 registers
+                "Lineout Playback HeadphoneMode",//<  name of the amixer control
+                ADAU1761_PLAY_LINE_LEFT_VOL,    //< register for left ch, 0x4025
+		ADAU1761_PLAY_LINE_RIGHT_VOL,  //< register for right ch, 0x4026
+                0,                    // bit shift, this setting starts at bit 0
+                1,                   // the bit mask, this setting is 1 bit wide
+                0),                             // This setting is not inverted.
 
+        
 	SOC_ENUM("ADC Bias", adau1761_adc_bias_enum),
 	SOC_ENUM("DAC Bias", adau1761_dac_bias_enum),
 	SOC_ENUM("Capture Bias", adau1761_capture_bias_enum),
