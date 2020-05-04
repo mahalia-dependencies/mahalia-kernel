@@ -644,6 +644,8 @@ static bool adau1761_readable_register(struct device *dev, unsigned int reg)
 
 static int adau1761_codec_probe(struct snd_soc_codec *codec)
 {
+        printk("AUDIOTEST %s entering function\n", __func__);
+
 	struct snd_soc_dapm_context *dapm = snd_soc_codec_get_dapm(codec);
 	struct adau1761_platform_data *pdata = codec->dev->platform_data;
 	struct adau *adau = snd_soc_codec_get_drvdata(codec);
@@ -652,7 +654,9 @@ static int adau1761_codec_probe(struct snd_soc_codec *codec)
 	ret = adau17x1_add_widgets(codec);
 	if (ret < 0)
 		return ret;
-
+        printk("AUDIOTEST platform_data is %p\n", pdata);
+        if (pdata) printk("AUDIOTEST input_differential is %d\n",
+                          pdata->input_differential);
 	if (pdata && pdata->input_differential) {
 		regmap_update_bits(adau->regmap, ADAU1761_LEFT_DIFF_INPUT_VOL,
 			ADAU1761_DIFF_INPUT_VOL_LDEN,
