@@ -162,6 +162,15 @@ static const struct snd_kcontrol_new adau1761_differential_mode_controls[] = {
 
 	SOC_DOUBLE_R_TLV("PGA Boost Capture Volume", ADAU1761_REC_MIXER_LEFT1,
 		ADAU1761_REC_MIXER_RIGHT1, 3, 2, 0, adau1761_pga_boost_tlv),
+
+        
+	SOC_DOUBLE_R(                    // A stero control spanning 2 registers
+                "Capture Differential Switch",   //<  name of the amixer control
+                ADAU1761_LEFT_DIFF_INPUT_VOL,    //< register for left ch
+		ADAU1761_RIGHT_DIFF_INPUT_VOL,   //< register for right ch
+                0,                    // bit shift, this setting starts at bit 0
+                1,                   // the bit mask, this setting is 1 bit wide
+                0),                             // This setting is not inverted.
 };
 
 static const struct snd_kcontrol_new adau1761_single_mode_controls[] = {
@@ -660,28 +669,18 @@ static int adau1761_codec_probe(struct snd_soc_codec *codec)
 	ret = adau17x1_add_widgets(codec);
 	if (ret < 0)
 		return ret;
-        printk("AUDIOTEST platform_data is %p\n", pdata);
-        if (pdata) printk("AUDIOTEST input_differential is %d\n",
-                          pdata->input_differential);
-	if (pdata && pdata->input_differential) {
-		regmap_update_bits(adau->regmap, ADAU1761_LEFT_DIFF_INPUT_VOL,
-			ADAU1761_DIFF_INPUT_VOL_LDEN,
-			ADAU1761_DIFF_INPUT_VOL_LDEN);
-		regmap_update_bits(adau->regmap, ADAU1761_RIGHT_DIFF_INPUT_VOL,
-			ADAU1761_DIFF_INPUT_VOL_LDEN,
-			ADAU1761_DIFF_INPUT_VOL_LDEN);
-		ret = snd_soc_add_codec_controls(codec,
+        // Always enable differential controls ...
+	ret = snd_soc_add_codec_controls(codec,
 			adau1761_differential_mode_controls,
 			ARRAY_SIZE(adau1761_differential_mode_controls));
-		if (ret)
+	if (ret)
 			return ret;
-	} else {
-		ret = snd_soc_add_codec_controls(codec,
+	// ... as well as single-ended controls
+	ret = snd_soc_add_codec_controls(codec,
 			adau1761_single_mode_controls,
 			ARRAY_SIZE(adau1761_single_mode_controls));
-		if (ret)
+	if (ret)
 			return ret;
-	}
 
 	switch (adau1761_get_lineout_mode(codec)) {
 	case ADAU1761_OUTPUT_MODE_LINE:
