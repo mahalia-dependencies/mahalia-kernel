@@ -56,6 +56,7 @@
 #define ADAU1761_PLAY_MONO_OUTPUT_VOL_UNMUTE	BIT(1)
 
 #define ADAU1761_PLAY_HP_RIGHT_VOL_MODE_HP	BIT(0)
+#define ADAU1761_PLAY_HP_LEFT_VOL_ENABLE_HP	BIT(0)
 
 #define ADAU1761_PLAY_LINE_LEFT_VOL_MODE_HP	BIT(0)
 
@@ -590,6 +591,10 @@ static int adau1761_setup_headphone_mode(struct snd_soc_codec *codec)
 		regmap_update_bits(adau->regmap, ADAU1761_PLAY_HP_RIGHT_VOL,
 			ADAU1761_PLAY_HP_RIGHT_VOL_MODE_HP,
 			ADAU1761_PLAY_HP_RIGHT_VOL_MODE_HP);
+                // Setting this bit also is redundant but does not hurt
+		regmap_update_bits(adau->regmap, ADAU1761_PLAY_HP_LEFT_VOL,
+			ADAU1761_PLAY_HP_LEFT_VOL_ENABLE_HP,
+			ADAU1761_PLAY_HP_LEFT_VOL_ENABLE_HP);
 		break;
 	default:
 		return -EINVAL;
