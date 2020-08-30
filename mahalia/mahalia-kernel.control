@@ -1,0 +1,5 @@
+Section: admin
+Maintainer: openMHA Packaging Team <packaging@openmha.org>
+Description: openMHA mahalia kernel
+  Linux kernel with real-time patches Cape4all sound card driver
+Homepage: https://github.com/HoerTech-gGmbH/Cape4all

@@ -1,0 +1,3 @@
+arch/arm/boot/zImage,/boot
+arch/arm/boot/dts/*-audio-extension.dtb,/boot
+compiled_modules/lib/modules,/lib
