@@ -12,7 +12,7 @@ pipeline {
         sh "rm -rf compiled_modules && mkdir compiled_modules"
         sh "ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- INSTALL_MOD_PATH=compiled_modules make modules_install"
         sh('mhamakedeb mahalia/mahalia-kernel.csv $(make kernelversion).mha.' +
-           '           $(make kernelversion).mha.$(cat mahalia/version) armhf')
+           ''    +    '$(cat mahalia/version) armhf')
         stash name: "deb", includes: '*.deb'
         archiveArtifacts "*.deb"
       }
