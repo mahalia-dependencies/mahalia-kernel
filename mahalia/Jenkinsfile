@@ -1,39 +1,77 @@
+// Declarative Jenkins pipeline to build a realtime kernel for mahalia
 pipeline {
+
+  // This build needs a Jenkins agent that can cross-compile a linux kernel.
+  // Target of cross-compilation is armv7.  Refine labels when needed.
   agent {label "kernel && cross"}
+
   stages {
-    stage("build") {
+    stage("compile and package") {
       steps {
+        // The following build steps automate Chris' instructions from
+        // https://github.com/mahalia-dependencies/mahalia-utils/blob/master/compile_kernel/instructions.md
+
+        // Remove any build artifacts from previous builds
         sh "make distclean"
+
+        // Build default configuration for beaglebone kernel with realtime patch
         sh "ti_config_fragments/defconfig_builder.sh -t ti_sdk_am3x_rt_release"
         sh "ARCH=arm make ti_sdk_am3x_rt_release_defconfig"
-        // Instead of  ARCH=arm make menuconfig we can copy an existing .config:
+
+        // Jenkins cannot interactively execute make menuconfig. Instead, the
+        // resulting configuration file is stored here in git and can now be
+        // copied to ".config"
         sh "cp mahalia/kernel.config .config"
-        sh "ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- make -j5 zImage modules dtbs"
+
+        // Compile the kernel for ARM
+        sh("ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- " +
+           "make -j5 zImage modules dtbs"                  )
+
+        // Remove any module installation artifacts from previous builds
         sh "rm -rf compiled_modules && mkdir compiled_modules"
+
+        // Create installation directory for kernel modules and copy all modules
         sh "ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- INSTALL_MOD_PATH=compiled_modules make modules_install"
+
+        // End of steps from Chris' instructions. We package using mhamakedeb:
+
+        // Pack compiled kernel and modules into debian package
         sh('mhamakedeb mahalia/mahalia-kernel.csv $(make kernelversion).mha.' +
-           ''    +    '$(cat mahalia/version) armhf')
+           '$(cat mahalia/version) armhf')
+
+        // Store debian package in stash for next Jenkinsfile stage below
         stash name: "deb", includes: '*.deb'
+
+        // Additionally, publish debian package as Jenkins artifact.
         archiveArtifacts "*.deb"
       }
     }
-    /*
-    stage("debian packages for apt") {
+
+    stage("store debian package for apt apt") {
+      // This stage stores the new debian package in our storage from which
+      // the apt repository is generated.  It needs to be executed in container
+      // "aptly" to ensure (1) proper synchronization (maximum 1 "aptly"
+      // instance allowed at any time) and (2) access to the storage disk.
       agent {label "aptly"}
       steps {
-        // receive all deb packages from openmha build
+        // remove artifacts from previous builds
+        sh "rm -rf *deb" // removes any packages and directories
+
+        // receive deb packages from previous "compile and package" stage
         unstash "deb"
-        archiveArtifacts "*.deb"
 
-        // Copies the new debs to the stash of existing debs,
-        sh "make storage"
+        // We will use the same kernel regardless of ubuntu/debian release
+        sh "mkdir -p deb/bionic && ln *.deb deb/bionic/"
 
+        // Copies the new debs to the stash of existing debs
+        sh "make -f mahalia/storage.mk storage"
+
+        // Trigger update of the apt repository in Jenkins job "hoertech-aptly"
         build job:         "/hoertech-aptly/master",
               quietPeriod: 300,
               wait:        false
       }
     }
-    */
   }
 
   // Email notification on failed build taken from
@@ -42,7 +80,7 @@ pipeline {
   // https://jenkins.io/doc/pipeline/steps/workflow-basic-steps/#-mail-%20mail
   post {
     failure {
-      mail to: 't.herzke@hoertech.de',
+      mail to: 't.herzke@hoertech.de,m.zimmermann@hoertech.de,p.maanen@hoertech.de',
            subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
            body: "Something is wrong with ${env.BUILD_URL}"
     }
