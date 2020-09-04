@@ -11,26 +11,26 @@ pipeline {
         // The following build steps automate Chris' instructions from
         // https://github.com/mahalia-dependencies/mahalia-utils/blob/master/compile_kernel/instructions.md
 
-        // Remove any leftovers from previous builds
+        // Remove any build artifacts from previous builds
         sh "make distclean"
 
         // Build default configuration for beaglebone kernel with realtime patch
         sh "ti_config_fragments/defconfig_builder.sh -t ti_sdk_am3x_rt_release"
         sh "ARCH=arm make ti_sdk_am3x_rt_release_defconfig"
 
-        // We cannot manually execute make menuconfig in Jenkins. Instead, we
-        // store the resulting configuration file here in git and copy it to
-        // ".config"
+        // Jenkins cannot interactively execute make menuconfig. Instead, the
+        // resulting configuration file is stored here in git and can now be
+        // copied to ".config"
         sh "cp mahalia/kernel.config .config"
 
         // Compile the kernel for ARM
         sh("ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- " +
            "make -j5 zImage modules dtbs"                  )
 
-        // Remove any leftovers from previous builds in modules output directory
+        // Remove any module installation artifacts from previous builds
         sh "rm -rf compiled_modules && mkdir compiled_modules"
 
-        // Create and populate modules output directory
+        // Create installation directory for kernel modules and copy all modules
         sh "ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- INSTALL_MOD_PATH=compiled_modules make modules_install"
 
         // End of steps from Chris' instructions. We package using mhamakedeb:
@@ -54,16 +54,14 @@ pipeline {
       // instance allowed at any time) and (2) access to the storage disk.
       agent {label "aptly"}
       steps {
+        // remove artifacts from previous builds
+        sh "rm -rf *deb" // removes any packages and directories
+
         // receive deb packages from previous "compile and package" stage
         unstash "deb"
 
-        // Create a directory where the deb will be found by storage.mk
-        sh "mkdir deb"
-
         // We will use the same kernel regardless of ubuntu/debian release
-        sh "mkdir deb/bionic && ln *.deb deb/bionic/"
-        sh "mkdir deb/buster && ln *.deb deb/buster/"
-        sh "mkdir deb/focal  && ln *.deb deb/focal/"
+        sh "mkdir -p deb/bionic && ln *.deb deb/bionic/"
 
         // Copies the new debs to the stash of existing debs
         sh "make -f mahalia/storage.mk storage"

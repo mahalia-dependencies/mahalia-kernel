@@ -45,12 +45,12 @@ export BRANCH_NAME
 # contain packages are detected automatically with $(wildcard)
 
 # There will by $SYSTEM subdirectories below this directory.
-# These subdirectories then contain the package files.
-SUPPLY_DIR = deb
+# These subdirectories then contain the package files. Must end in /
+SUPPLY_DIR = deb/
 
 PROJECT = mahalia-kernel
 
-# There will be $SYSTEM subdirectories below this directory.
+# There will be $SYSTEM subdirectories below this directory. Must end in /
 STORAGE_DIR = /STORAGE/$(PROJECT)/$(BRANCH_NAME)/
 
 # How many days to keep debian packages in storage that are superceded by a
