@@ -9,7 +9,7 @@ pipeline {
     stage("compile and package") {
       steps {
         // make sure the git repository is clean
-        sh "git reset --hard && git clean --ffdx ."
+        sh "git reset --hard && git clean -ffdx ."
 
         // The following build steps automate Chris' instructions from
         // https://github.com/mahalia-dependencies/mahalia-utils/blob/master/compile_kernel/instructions.md
