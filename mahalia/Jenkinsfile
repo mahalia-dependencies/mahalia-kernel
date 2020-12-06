@@ -11,30 +11,63 @@ pipeline {
         // make sure the git repository is clean
         sh "git reset --hard && git clean -ffdx ."
 
+        sh "git status"
+        sh "git diff-index --name-only HEAD"
+        sh "if git diff-index --name-only HEAD | grep -qv "^scripts/package; then exit 1; fi"
+        
         // The following build steps automate Chris' instructions from
         // https://github.com/mahalia-dependencies/mahalia-utils/blob/master/compile_kernel/instructions.md
 
         // Remove any build artifacts from previous builds
         sh "make distclean"
 
+        sh "git status"
+        sh "git diff-index --name-only HEAD"
+        sh "if git diff-index --name-only HEAD | grep -qv "^scripts/package; then exit 1; fi"
+
         // Build default configuration for beaglebone kernel with realtime patch
         sh "ti_config_fragments/defconfig_builder.sh -t ti_sdk_am3x_rt_release"
+
+        sh "git status"
+        sh "git diff-index --name-only HEAD"
+        sh "if git diff-index --name-only HEAD | grep -qv "^scripts/package; then exit 1; fi"
+
         sh "ARCH=arm make ti_sdk_am3x_rt_release_defconfig"
+
+        sh "git status"
+        sh "git diff-index --name-only HEAD"
+        sh "if git diff-index --name-only HEAD | grep -qv "^scripts/package; then exit 1; fi"
 
         // Jenkins cannot interactively execute make menuconfig. Instead, the
         // resulting configuration file is stored here in git and can now be
         // copied to ".config"
         sh "cp mahalia/kernel.config .config"
 
+        sh "git status"
+        sh "git diff-index --name-only HEAD"
+        sh "if git diff-index --name-only HEAD | grep -qv "^scripts/package; then exit 1; fi"
+
         // Compile the kernel for ARM
         sh("ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- " +
            "make -j5 zImage modules dtbs"                  )
 
+        sh "git status"
+        sh "git diff-index --name-only HEAD"
+        sh "if git diff-index --name-only HEAD | grep -qv "^scripts/package; then exit 1; fi"
+
         // Remove any module installation artifacts from previous builds
         sh "rm -rf compiled_modules && mkdir compiled_modules"
 
+        sh "git status"
+        sh "git diff-index --name-only HEAD"
+        sh "if git diff-index --name-only HEAD | grep -qv "^scripts/package; then exit 1; fi"
+
         // Create installation directory for kernel modules and copy all modules
         sh "ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- INSTALL_MOD_PATH=compiled_modules make modules_install"
+
+        sh "git status"
+        sh "git diff-index --name-only HEAD"
+        sh "if git diff-index --name-only HEAD | grep -qv "^scripts/package; then exit 1; fi"
 
         // End of steps from Chris' instructions. We package using mhamakedeb:
 
@@ -42,14 +75,30 @@ pipeline {
         sh('mhamakedeb mahalia/mahalia-kernel.csv $(make kernelversion).mha.' +
            '$(cat mahalia/version) armhf')
 
+        sh "git status"
+        sh "git diff-index --name-only HEAD"
+        sh "if git diff-index --name-only HEAD | grep -qv "^scripts/package; then exit 1; fi"
+
         // Store debian package in stash for next Jenkinsfile stage below
         stash name: "deb", includes: '*.deb'
+
+        sh "git status"
+        sh "git diff-index --name-only HEAD"
+        sh "if git diff-index --name-only HEAD | grep -qv "^scripts/package; then exit 1; fi"
 
         // Additionally, publish debian package as Jenkins artifact.
         archiveArtifacts "*.deb"
 
+        sh "git status"
+        sh "git diff-index --name-only HEAD"
+        sh "if git diff-index --name-only HEAD | grep -qv "^scripts/package; then exit 1; fi"
+
         // Fail if we have compiled a "dirty" kernel
         sh "scripts/setlocalversion | grep -qv dirty"
+
+        sh "git status"
+        sh "git diff-index --name-only HEAD"
+        sh "if git diff-index --name-only HEAD | grep -qv "^scripts/package; then exit 1; fi"
       }
     }
 
